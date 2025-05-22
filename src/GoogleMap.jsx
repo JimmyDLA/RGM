@@ -6,15 +6,16 @@ import './App.css'
 const MapEffect = ({ 
   center,
   setPlaces,
-  desiredCount = 60,
+  nearbyType,
+  desiredCount = 100,
   initialRadius = 500,
-  maxRadius=3000 
+  maxRadius=5000
 }) => {
   const map = useMap();
 
   useEffect(() => {
     if (!map) return;
-
+    setPlaces([])
     async function fetchPlaces(radius) {
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
 
@@ -27,7 +28,9 @@ const MapEffect = ({
             'places.id,places.displayName,places.location,places.formattedAddress',
         },
         body: JSON.stringify({
-          includedTypes: ['school'],
+          includedTypes: [
+            nearbyType
+          ],
           locationRestriction: {
             circle: {
               center: {
@@ -75,12 +78,12 @@ const MapEffect = ({
     }
 
     gatherPlaces();
-  }, [map]);
+  }, [map, nearbyType]);
 
   return null;
 }
 
-export const GoogleMap = () => {
+export const GoogleMap = ({ marker, nearbyType }) => {
   const [places, setPlaces] = useState([]);
   const mapRef = useRef(null);
   const center = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
@@ -99,7 +102,7 @@ export const GoogleMap = () => {
         apiKey="AIzaSyDlMPxqwY6sc6keDYjO9LNnhct8mgmLrs0"
         libraries={['places']}
       >
-        <div style={{ padding: '20px', width: '90%', height: '90%'}}>
+        <div style={{ padding: '50px', width: '80%', height: '80%'}}>
           <Map 
             ref={mapRef}
             defaultCenter={center} 
@@ -116,10 +119,10 @@ export const GoogleMap = () => {
                   lng: place.location.longitude,
                 }}
               >
-                <span style={{fontSize: '35px'}}>🚸</span>
+                <span style={{fontSize: '35px'}}>{marker}</span>
               </AdvancedMarker>
             ))}
-            <MapEffect center={center} setPlaces={setPlaces} />
+            <MapEffect center={center} setPlaces={setPlaces} nearbyType={nearbyType} />
           </Map>
         </div>
       </APIProvider>
