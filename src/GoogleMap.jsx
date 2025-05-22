@@ -10,17 +10,18 @@ const MapEffect = ({
   setPlaces,
   nearbyType,
   desiredCount = 100,
-  initialRadius = 500,
+  initialRadius = 0,
   maxRadius=5000
 }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (!map) return;
-    setPlaces([])
+    if (!map || !nearbyType.length) return;
+    // setPlaces([])
+    console.log('useEffect ', nearbyType)
+    // debugger
     async function fetchPlaces(radius) {
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
-debugger
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -30,9 +31,7 @@ debugger
             'places.id,places.displayName,places.location,places.formattedAddress',
         },
         body: JSON.stringify({
-          includedTypes: [
-            nearbyType
-          ],
+          includedTypes: nearbyType,
           locationRestriction: {
             circle: {
               center: {

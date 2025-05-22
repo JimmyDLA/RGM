@@ -4,8 +4,8 @@ import { GoogleMap } from './GoogleMap';
 import { InputTools } from './InputTools';
 
 function App() {
-  const [marker, setMarker] = useState('🚸');
-  const [nearbyType, setNearbyType] = useState('school')
+  const [marker, setMarker] = useState('📍');
+  const [nearbyType, setNearbyType] = useState([])
   return (
     <>
       <InputTools 
