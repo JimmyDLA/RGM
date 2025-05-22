@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { APIProvider, Map, Marker, useMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import './App.css'
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
 
 
 const MapEffect = ({ 
@@ -18,12 +20,12 @@ const MapEffect = ({
     setPlaces([])
     async function fetchPlaces(radius) {
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
-
+debugger
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Goog-Api-Key': 'AIzaSyDlMPxqwY6sc6keDYjO9LNnhct8mgmLrs0',
+          'X-Goog-Api-Key': `${apiKey}`,
           'X-Goog-FieldMask':
             'places.id,places.displayName,places.location,places.formattedAddress',
         },
