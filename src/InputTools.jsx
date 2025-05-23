@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
-import { IconButton, Input, Tag, NativeSelect , Accordion} from "@chakra-ui/react";
+import { IconButton, Input, Tag, NativeSelect, Accordion, Button} from "@chakra-ui/react";
 import EmojiPicker from 'emoji-picker-react';
 import { placesTypes } from './assets/places_types';
 import { LuSearch } from "react-icons/lu"
 
-export const InputTools = ({ marker, setMarker, nearbyType, setNearbyType }) => {
+export const InputTools = ({ 
+  marker, 
+  setMarker, 
+  nearbyType, 
+  setNearbyType,
+  setCount,
+  setRadius,
+  setRefreshCount,
+}) => {
   const [text, setText] = useState('');
   const [location, setLocation] = useState('');
   console.log('InputTools ', nearbyType)
@@ -25,13 +33,20 @@ export const InputTools = ({ marker, setMarker, nearbyType, setNearbyType }) => 
   }
 
   const handleTag = (item) => {
-    console.log(item, nearbyType)
-    const copy = nearbyType;
-    const index = copy.indexOf(item);
-    if (index > -1) {
-      copy.splice(index, 1);
-    }
-    setNearbyType(copy);
+    setNearbyType(nearbyType.filter((type) => type !== item));
+    setRefreshCount((c) => c + 1)
+  }
+
+  const handleCount = (e) => {
+    setCount(parseInt(e.target.value))
+  }
+
+  const handleRadius = (e) => {
+    setRadius(parseInt(e.target.value))
+  }
+
+  const handleSearch = () => {
+    setRefreshCount((c) => c + 1)
   }
 
   return (
@@ -76,64 +91,48 @@ export const InputTools = ({ marker, setMarker, nearbyType, setNearbyType }) => 
             >
               {item.name}
             </option>
-            
           ))}
         </NativeSelect.Field>
         <NativeSelect.Indicator />
-    </NativeSelect.Root>
-    <hr />
-
-    <p>Exclude Places</p>
-      <NativeSelect.Root>
-        <NativeSelect.Field placeholder='Select' onChange={handleOnChange} >
-          {placesTypes.map((item, idx) => (
-            <option 
-              value={JSON.stringify(item)}
-              key={`${item.type}${idx}`}
-            >
-              {item.name}
-            </option>
-            
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-    </NativeSelect.Root>
+      </NativeSelect.Root>
       <hr />
 
       <p>Count</p>
       <NativeSelect.Root>
-      <NativeSelect.Field placeholder='Select'>
-        <option value="1">5</option>
-        <option value="2">10</option>
-        <option value="15">15</option>
-        <option value="20">20</option>
-        <option value="25">25</option>
-        <option value="30">30</option>
-        <option value="35">35</option>
-        <option value="40">40</option>
-        <option value="45">45</option>
-        <option value="50">50</option>
-      </NativeSelect.Field>
-      <NativeSelect.Indicator />
-    </NativeSelect.Root>
-    <hr />
+        <NativeSelect.Field placeholder='Select' onChange={handleCount}>
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={15}>15</option>
+          <option value={20}>20</option>
+          <option value={25}>25</option>
+          <option value={30}>30</option>
+          <option value={35}>35</option>
+          <option value={40}>40</option>
+          <option value={45}>45</option>
+          <option value={50}>50</option>
+        </NativeSelect.Field>
+        <NativeSelect.Indicator />
+      </NativeSelect.Root>
+      <hr />
 
-    <p>Radius</p>
-    <NativeSelect.Root>
-      <NativeSelect.Field placeholder='Select'>
-        <option value="500">500 meters</option>
-        <option value="1000">1000 meters</option>
-        <option value="1500">1500 meters</option>
-        <option value="2000">2000 meters</option>
-        <option value="2500">2500 meters</option>
-        <option value="3000">3000 meters</option>
-        <option value="3500">3500 meters</option>
-        <option value="4000">4000 meters</option>
-        <option value="4500">4500 meters</option>
-        <option value="5000">5000 meters</option>
-      </NativeSelect.Field>
-      <NativeSelect.Indicator />
-    </NativeSelect.Root>
+      <p>Radius</p>
+      <NativeSelect.Root>
+        <NativeSelect.Field placeholder='Select' onChange={handleRadius}>
+          <option value="500">500 meters</option>
+          <option value="1000">1000 meters</option>
+          <option value="1500">1500 meters</option>
+          <option value="2000">2000 meters</option>
+          <option value="2500">2500 meters</option>
+          <option value="3000">3000 meters</option>
+          <option value="3500">3500 meters</option>
+          <option value="4000">4000 meters</option>
+          <option value="4500">4500 meters</option>
+          <option value="5000">5000 meters</option>
+        </NativeSelect.Field>
+        <NativeSelect.Indicator />
+      </NativeSelect.Root>
+      <hr />
+      <Button onClick={handleSearch}>Search</Button>
     </div>
   )
 }

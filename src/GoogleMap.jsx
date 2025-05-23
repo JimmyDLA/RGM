@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { APIProvider, Map, Marker, useMap, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { APIProvider, InfoWindow, Map, Pin, useMap, AdvancedMarker, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
 import './App.css'
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -11,12 +11,14 @@ const MapEffect = ({
   nearbyType,
   desiredCount = 100,
   initialRadius = 0,
-  maxRadius=5000
+  maxRadius=5000,
+  refreshCount
 }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (!map || !nearbyType.length) return;
+    // debugger
+    if (!map || !nearbyType.length) return setPlaces([]);
     // setPlaces([])
     console.log('useEffect ', nearbyType)
     // debugger
@@ -79,16 +81,29 @@ const MapEffect = ({
     }
 
     gatherPlaces();
-  }, [map, nearbyType]);
+  }, [map, refreshCount]);
 
   return null;
 }
 
-export const GoogleMap = ({ marker, nearbyType }) => {
+export const GoogleMap = ({ 
+  marker, 
+  nearbyType, 
+  count, 
+  radius,
+  refreshCount
+}) => {
   const [places, setPlaces] = useState([]);
   const mapRef = useRef(null);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [markerRefs, setMarkerRefs] = useState({});
   const center = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
+  const [advancedMarkerRef, setAdvancedMarkerRef] = useAdvancedMarkerRef();
 
+  const handleMarkerClick = (place) => {
+    console.log({place})
+    setSelectedMarker(place);
+  };
   const mapOptions = useMemo(() => ({
     draggable: true,
     zoomControl: true,
@@ -97,7 +112,7 @@ export const GoogleMap = ({ marker, nearbyType }) => {
     gestureHandling: 'auto',
   }), []);
 
-
+  console.log({radius, count})
   return (
       <APIProvider 
         apiKey="AIzaSyDlMPxqwY6sc6keDYjO9LNnhct8mgmLrs0"
@@ -111,21 +126,79 @@ export const GoogleMap = ({ marker, nearbyType }) => {
             options={mapOptions}
             mapId="ee078752655abaa"
           >
-            <Marker position={center}></Marker>
-            {places.map((place) => (
-              <AdvancedMarker
-                key={place.id}
+            <AdvancedMarker position={center}>
+              <Pin
+                background="green"
+                glyphColor="blue"
+                borderColor="green"
+              />
+            </AdvancedMarker>
+            {places.map((place) => {
+              // Store marker refs for later use
+              if (markerRefs[place.id] !== setAdvancedMarkerRef) {
+                setMarkerRefs((prev) => ({ ...prev, [place.id]: setAdvancedMarkerRef }));
+              }
+              return (
+                <AdvancedMarker
+                  key={place.id}
+                  position={{
+                    lat: place.location.latitude,
+                    lng: place.location.longitude,
+                  }}
+                  ref={setAdvancedMarkerRef}
+                  onClick={() => handleMarkerClick(place)}
+                >
+                  <span style={{fontSize: '35px'}}>{marker}</span>
+                </AdvancedMarker>
+              )}
+            )}
+            {selectedMarker && (
+              <InfoWindow
                 position={{
-                  lat: place.location.latitude,
-                  lng: place.location.longitude,
+                  lat: selectedMarker.location.latitude,
+                  lng: selectedMarker.location.longitude,
                 }}
+                anchor={markerRefs[selectedMarker.id]?.current}
+                onCloseClick={() => setSelectedMarker(null)}
+                maxWidth={300}
+                headerContent={<h2 style={styles.header}>{selectedMarker.displayName.text}</h2>}
               >
-                <span style={{fontSize: '35px'}}>{marker}</span>
-              </AdvancedMarker>
-            ))}
-            <MapEffect center={center} setPlaces={setPlaces} nearbyType={nearbyType} />
+                <p style={styles.body}>{selectedMarker.formattedAddress}</p>
+                <a
+                  style={styles.link}
+                  target='_blank'
+                  href={`https://www.google.com/maps/place/?q=place_id:${selectedMarker.id}`}
+                >
+                  View on Google Maps
+                </a>
+              </InfoWindow>
+            )}
+            <MapEffect 
+              maxRadius={radius} 
+              desiredCount={count} 
+              center={center} 
+              setPlaces={setPlaces} 
+              nearbyType={nearbyType}
+              refreshCount={refreshCount}
+            />
           </Map>
         </div>
       </APIProvider>
   )
+}
+
+const styles = {
+  header: {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    color: 'black',
+    paddingBottom: '10px',
+  },
+  body: {
+    paddingBottom: '5px'
+  },
+  link: {
+    color: 'blue',
+    textDecoration: 'underline',
+  }
 }
