@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { APIProvider, InfoWindow, Map, Pin, useMap, AdvancedMarker, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
+import { Spinner } from "@chakra-ui/react";
+
 import './App.css'
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const sti = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
@@ -13,13 +15,14 @@ const MapEffect = ({
   desiredCount = 100,
   initialRadius = 0,
   maxRadius=5000,
-  refreshCount
+  refreshCount,
+  setLoading,
 }) => {
   const map = useMap();
 
   useEffect(() => {
     if (!map || !nearbyType.length) return setPlaces([]);
-
+    
     async function fetchPlaces(radius) {
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
       const response = await fetch(url, {
@@ -54,6 +57,7 @@ const MapEffect = ({
     }
 
     async function gatherPlaces() {
+      setLoading(true)
       let allResults = [];
       let radius = initialRadius;
 
@@ -76,6 +80,7 @@ const MapEffect = ({
 
       console.log('✅ Final gathered places:', allResults);
       setPlaces(allResults.slice(0, desiredCount));
+      setLoading(false)
     }
 
     gatherPlaces();
@@ -92,10 +97,10 @@ export const GoogleMap = ({
   refreshCount,
   inputRef,
 }) => {
-  
   const mapRef = useRef(null);
   const circleRef = useRef(null);
   const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [center, setCenter] = useState(sti);
   const [mapCenter, setMapCenter] = useState();
   const [selectedMarker, setSelectedMarker] = useState(null);
@@ -103,14 +108,13 @@ export const GoogleMap = ({
   const [markerRefs, setMarkerRefs] = useState({});
   const [advancedMarkerRef, setAdvancedMarkerRef] = useAdvancedMarkerRef();
 
-
-    // If center or radius change, update the circle
-    useEffect(() => {
-      if (circleRef.current) {
-        circleRef.current.setCenter(center);
-        circleRef.current.setRadius(radius !== 5001 ? radius : 0);
-      }
-    }, [center, radius]);
+  // If center or radius change, update the circle
+  useEffect(() => {
+    if (circleRef.current) {
+      circleRef.current.setCenter(center);
+      circleRef.current.setRadius(radius !== 5001 ? radius : 0);
+    }
+  }, [center, radius]);
 
   const handleMarkerClick = (place) => {
     setSelectedMarker(place);
@@ -158,6 +162,7 @@ export const GoogleMap = ({
     gestureHandling: 'auto',
   }), []);
 
+
   console.log({radius, count})
   return (
       <APIProvider 
@@ -175,6 +180,13 @@ export const GoogleMap = ({
             mapId="ee078752655abaa"
             onTilesLoaded={handleMapLoad}
           >
+            {loading && (
+              <>
+              <div style={styles.spinCont}>
+            </div>
+              <Spinner style={styles.spinner} size= "xl"/>
+              </>
+            )}
             <AdvancedMarker position={center}>
             </AdvancedMarker>
             {places.map((place) => {
@@ -224,6 +236,7 @@ export const GoogleMap = ({
               setPlaces={setPlaces} 
               nearbyType={nearbyType}
               refreshCount={refreshCount}
+              setLoading={setLoading}
             />
           </Map>
         </div>
@@ -244,5 +257,19 @@ const styles = {
   link: {
     color: 'blue',
     textDecoration: 'underline',
+  },
+  spinner: {
+    left: '50%',
+    top: '50%',
+    position: 'absolute'
+  },
+  spinCont: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'gray',
+    left: '0',
+    top: '0',
+    opacity: '0.5',
+    position: 'absolute'
   }
 }
