@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { APIProvider, InfoWindow, Map, Pin, useMap, AdvancedMarker, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
 import './App.css'
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const cent = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
 
 
 
@@ -17,11 +18,8 @@ const MapEffect = ({
   const map = useMap();
 
   useEffect(() => {
-    // debugger
     if (!map || !nearbyType.length) return setPlaces([]);
-    // setPlaces([])
-    console.log('useEffect ', nearbyType)
-    // debugger
+
     async function fetchPlaces(radius) {
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
       const response = await fetch(url, {
@@ -68,7 +66,7 @@ const MapEffect = ({
           (place) => !allResults.some((p) => p.id === place.id)
         );
         allResults = [...allResults, ...uniqueResults];
-        console.log('✅ FuniqueResults places:', uniqueResults);
+        console.log('✅ unique Results places:', uniqueResults);
 
         if (allResults.length >= desiredCount) break;
 
@@ -91,19 +89,67 @@ export const GoogleMap = ({
   nearbyType, 
   count, 
   radius,
-  refreshCount
+  refreshCount,
+  inputRef,
 }) => {
-  const [places, setPlaces] = useState([]);
+  
   const mapRef = useRef(null);
+  const circleRef = useRef(null);
+  const [places, setPlaces] = useState([]);
+  const [center, setCenter] = useState(cent);
+  const [mapCenter, setMapCenter] = useState(cent);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  const [initialLoad, setInitialLoad] = useState(0);
   const [markerRefs, setMarkerRefs] = useState({});
-  const center = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
   const [advancedMarkerRef, setAdvancedMarkerRef] = useAdvancedMarkerRef();
 
+
+    // If center or radius change, update the circle
+    useEffect(() => {
+      if (circleRef.current) {
+        circleRef.current.setCenter(center);
+        circleRef.current.setRadius(radius !== 5001 ? radius : 0);
+      }
+    }, [center, radius]);
+
   const handleMarkerClick = (place) => {
-    console.log({place})
     setSelectedMarker(place);
   };
+
+  const handleMapLoad = (mapRef) => {
+    console.log('Map Ref: ', mapRef.map)
+    if (initialLoad < 1) {
+      setInitialLoad(1)
+      const map = mapRef.map
+      // Create the circle
+      circleRef.current = new window.google.maps.Circle({
+        map,
+        center,
+        radius: 0,
+        fillColor: "#4285F4",
+        fillOpacity: 0.2,
+        strokeColor: "#4285F4",
+        strokeOpacity: 0.5,
+        strokeWeight: 2,
+      });
+
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current);
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          setCenter({ lat, lng });
+          setMapCenter({ lat, lng });
+          setTimeout(() => {
+            setMapCenter(null)
+          }, 100);
+        }
+      });
+      console.log({circleRef})
+    }
+  };
+
   const mapOptions = useMemo(() => ({
     draggable: true,
     zoomControl: true,
@@ -115,23 +161,21 @@ export const GoogleMap = ({
   console.log({radius, count})
   return (
       <APIProvider 
-        apiKey="AIzaSyDlMPxqwY6sc6keDYjO9LNnhct8mgmLrs0"
+        apiKey={apiKey}
         libraries={['places']}
       >
         <div style={{ padding: '50px', width: '80%', height: '80%'}}>
           <Map 
             ref={mapRef}
-            defaultCenter={center} 
+            defaultCenter={cent} 
+            center={mapCenter}
             defaultZoom={15}
+            zoomControl
             options={mapOptions}
             mapId="ee078752655abaa"
+            onTilesLoaded={handleMapLoad}
           >
             <AdvancedMarker position={center}>
-              <Pin
-                background="green"
-                glyphColor="blue"
-                borderColor="green"
-              />
             </AdvancedMarker>
             {places.map((place) => {
               // Store marker refs for later use
