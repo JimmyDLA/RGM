@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { APIProvider, InfoWindow, Map, Pin, useMap, AdvancedMarker, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
 import './App.css'
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-const cent = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
+const sti = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
 
 
 
@@ -96,8 +96,8 @@ export const GoogleMap = ({
   const mapRef = useRef(null);
   const circleRef = useRef(null);
   const [places, setPlaces] = useState([]);
-  const [center, setCenter] = useState(cent);
-  const [mapCenter, setMapCenter] = useState(cent);
+  const [center, setCenter] = useState(sti);
+  const [mapCenter, setMapCenter] = useState();
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [initialLoad, setInitialLoad] = useState(0);
   const [markerRefs, setMarkerRefs] = useState({});
@@ -164,10 +164,10 @@ export const GoogleMap = ({
         apiKey={apiKey}
         libraries={['places']}
       >
-        <div style={{ padding: '50px', width: '80%', height: '80%'}}>
+        <div style={{ width: '80%'}}>
           <Map 
             ref={mapRef}
-            defaultCenter={cent} 
+            defaultCenter={sti} 
             center={mapCenter}
             defaultZoom={15}
             zoomControl

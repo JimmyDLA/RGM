@@ -116,7 +116,7 @@ export const InputTools = ({
       <Accordion.Root collapsible ref={accordRef} >
         <Accordion.Item>
           <Accordion.ItemTrigger>
-            <p>Marker: <span style={styles.emojiSpan}>{marker}</span></p>
+            <p>Select a Marker: <span style={styles.emojiSpan}>{marker}</span></p>
             <Accordion.ItemIndicator />
           </Accordion.ItemTrigger>
           <Accordion.ItemContent>
