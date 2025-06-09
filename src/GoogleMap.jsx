@@ -20,13 +20,8 @@ const MapEffect = ({
   const map = useMap();
 
   useEffect(() => {
-    // debugger
     if (!map || !nearbyType.length) return setPlaces([]);
-    // setPlaces([])
-    console.log('useEffect ', nearbyType)
-    // debugger
     async function fetchPlaces(radius) {
-
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
       const response = await fetch(url, {
         method: 'POST',
@@ -120,9 +115,6 @@ export const GoogleMap = ({
     gestureHandling: 'auto',
   }), []);
 
-  const handleMapClicked = e => {
-    debugger
-  }
 
   console.log({radius, count})
   return (
@@ -137,7 +129,6 @@ export const GoogleMap = ({
             defaultZoom={15}
             options={mapOptions}
             mapId="ee078752655abaa"
-            onClick={handleMapClicked}
           >
             {loading && (
               <>
