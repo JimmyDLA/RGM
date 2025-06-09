@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { APIProvider, InfoWindow, Map, Pin, useMap, AdvancedMarker, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
+import { Spinner } from "@chakra-ui/react";
+
 import './App.css'
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -12,7 +14,8 @@ const MapEffect = ({
   desiredCount = 100,
   initialRadius = 0,
   maxRadius=5000,
-  refreshCount
+  refreshCount,
+  setLoading,
 }) => {
   const map = useMap();
 
@@ -23,6 +26,7 @@ const MapEffect = ({
     console.log('useEffect ', nearbyType)
     // debugger
     async function fetchPlaces(radius) {
+
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
       const response = await fetch(url, {
         method: 'POST',
@@ -56,6 +60,7 @@ const MapEffect = ({
     }
 
     async function gatherPlaces() {
+      setLoading(true)
       let allResults = [];
       let radius = initialRadius;
 
@@ -78,6 +83,7 @@ const MapEffect = ({
 
       console.log('✅ Final gathered places:', allResults);
       setPlaces(allResults.slice(0, desiredCount));
+      setLoading(false)
     }
 
     gatherPlaces();
@@ -94,11 +100,13 @@ export const GoogleMap = ({
   refreshCount
 }) => {
   const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(false);
   const mapRef = useRef(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [markerRefs, setMarkerRefs] = useState({});
   const center = { lat: 19.45827037215659, lng: -70.68147776264945 }; //19.455660228054015, -70.68801244529995   19.45827037215659, -70.68147776264945
   const [advancedMarkerRef, setAdvancedMarkerRef] = useAdvancedMarkerRef();
+
 
   const handleMarkerClick = (place) => {
     console.log({place})
@@ -111,6 +119,10 @@ export const GoogleMap = ({
     disableDefaultUI: false,
     gestureHandling: 'auto',
   }), []);
+
+  const handleMapClicked = e => {
+    debugger
+  }
 
   console.log({radius, count})
   return (
@@ -125,7 +137,15 @@ export const GoogleMap = ({
             defaultZoom={15}
             options={mapOptions}
             mapId="ee078752655abaa"
+            onClick={handleMapClicked}
           >
+            {loading && (
+              <>
+              <div style={styles.spinCont}>
+            </div>
+              <Spinner style={styles.spinner} size= "xl"/>
+              </>
+            )}
             <AdvancedMarker position={center}>
               <Pin
                 background="green"
@@ -180,6 +200,7 @@ export const GoogleMap = ({
               setPlaces={setPlaces} 
               nearbyType={nearbyType}
               refreshCount={refreshCount}
+              setLoading={setLoading}
             />
           </Map>
         </div>
@@ -200,5 +221,19 @@ const styles = {
   link: {
     color: 'blue',
     textDecoration: 'underline',
+  },
+  spinner: {
+    left: '50%',
+    top: '50%',
+    position: 'absolute'
+  },
+  spinCont: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'gray',
+    left: '0',
+    top: '0',
+    opacity: '0.5',
+    position: 'absolute'
   }
 }
