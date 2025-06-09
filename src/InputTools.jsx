@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
-import { IconButton, Input, Tag, NativeSelect, Accordion, Button} from "@chakra-ui/react";
+import { useRef } from "react";
+import { Input, Tag, NativeSelect, Accordion, Button} from "@chakra-ui/react";
 import EmojiPicker from 'emoji-picker-react';
 import { placesTypes } from './assets/places_types';
-import { LuSearch } from "react-icons/lu"
 
 export const InputTools = ({ 
   marker, 
@@ -12,22 +11,15 @@ export const InputTools = ({
   setCount,
   setRadius,
   setRefreshCount,
+  inputRef
 }) => {
-  const [text, setText] = useState('');
-  const [location, setLocation] = useState('');
-  console.log('InputTools ', nearbyType)
-
-  useEffect(() => {
-    console.log('inputtools useEffect', nearbyType)
-  }, [nearbyType])
-
+  const accordRef = useRef(null)
   const handleEmojiSelect = (e) => {
     setMarker(e.emoji)
-  } 
+  }
 
   const handleOnChange = (e) => {
     const data = JSON.parse(e.target.value)
-    console.log('handleOnChange ', nearbyType, data.type)
     const newType = [...nearbyType, data.type]
     setNearbyType(newType)
   }
@@ -38,11 +30,13 @@ export const InputTools = ({
   }
 
   const handleCount = (e) => {
-    setCount(parseInt(e.target.value))
+    const value = e.target.value
+    setCount(parseInt(value ? value : '100'))
   }
 
   const handleRadius = (e) => {
-    setRadius(parseInt(e.target.value))
+    const value = e.target.value
+    setRadius(parseInt(value ?  value : '5001'))
   }
 
   const handleSearch = () => {
@@ -51,28 +45,12 @@ export const InputTools = ({
 
   return (
     <div style={styles.container}>
+      <p>Location:</p>
       <div style={styles.location}>
-        <Input value={location} placeholder='Location' onChange={e => setLocation(e.target.value)}/>
-        <IconButton colorPalette="blue">
-          <LuSearch />
-        </IconButton>
+        <Input ref={inputRef} placeholder='Enter Location' />
       </div>
       <hr />
 
-      <Accordion.Root collapsible >
-        <Accordion.Item>
-          <Accordion.ItemTrigger>
-            <p>Marker: <span style={styles.emojiSpan}>{marker}</span></p>
-            <Accordion.ItemIndicator />
-          </Accordion.ItemTrigger>
-          <Accordion.ItemContent>
-            <Accordion.ItemBody>
-              <EmojiPicker lazyLoadEmojis={true} allowExpandReactions onEmojiClick={handleEmojiSelect} />
-            </Accordion.ItemBody>
-          </Accordion.ItemContent>
-        </Accordion.Item>
-      </Accordion.Root>
-      <hr />
       {nearbyType.map((item, idx) => (
         <Tag.Root key={`${item}${idx}`}>
           <Tag.Label>{item}</Tag.Label>
@@ -81,6 +59,8 @@ export const InputTools = ({
           </Tag.EndElement>
         </Tag.Root>
       ))}
+      {/* <hr /> */}
+
       <p>Include Places</p>
       <NativeSelect.Root>
         <NativeSelect.Field placeholder='Select' onChange={handleOnChange} >
@@ -131,6 +111,21 @@ export const InputTools = ({
         </NativeSelect.Field>
         <NativeSelect.Indicator />
       </NativeSelect.Root>
+      <hr />
+
+      <Accordion.Root collapsible ref={accordRef} >
+        <Accordion.Item>
+          <Accordion.ItemTrigger>
+            <p>Select a Marker: <span style={styles.emojiSpan}>{marker}</span></p>
+            <Accordion.ItemIndicator />
+          </Accordion.ItemTrigger>
+          <Accordion.ItemContent>
+            <Accordion.ItemBody>
+              <EmojiPicker lazyLoadEmojis={true} allowExpandReactions onEmojiClick={handleEmojiSelect} />
+            </Accordion.ItemBody>
+          </Accordion.ItemContent>
+        </Accordion.Item>
+      </Accordion.Root>
       <hr />
       <Button onClick={handleSearch}>Search</Button>
     </div>
